@@ -47,7 +47,7 @@ def get_files_for_upload(dir: str) -> Iterable[str]:
             if not is_video(file):
                 continue
 
-            print(f'  looking at {file}')
+            print(f'    looking at {file}')
             upload_queue.append(os.path.join(root, file))
 
     upload_queue.sort(key=lambda path: os.path.getmtime(path))
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     playlist: Playlist
     for playlist in playlists_response.playlists:
         playlist_videos_response = youtube.get_playlist_videos(playlist.playlistId)
-        print(f'  {playlist.title:30} {playlist.playlistId:30} {len(playlist_videos_response.videos):5} items')
+        print(f'  {playlist.title:30} {playlist.playlistId:38} {len(playlist_videos_response.videos):5} items')
         all_videos.extend(playlist_videos_response.videos)
 
     print(f'Populated {len(all_videos)} videos in total in {len(playlists_response.playlists)} playlists')

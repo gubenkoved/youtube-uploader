@@ -43,6 +43,8 @@ The following command will upload all video files in the specified directory (in
 
 `.\youtube_uploader.py --dir "LOCAL_DIRECTORY_TO_BACKUP" --playlist "PLAYLIST_TITLE_OR_SUBSTRING"`
 
-
-
 > NOTE: First time your run application or when Access Token expires you will be promted to navigate to the link specified by application and authorize the application to access your account. Authorization page will return you the code you will need to provide back to the application to aquire credentials. These credentials will be stored in credentials.json file for future use.
+
+# Limitations
+
+Each Google Project gets a specific quota per day. For YouTude DataAPI it's 10'000 units, and each video upload takes slightly more than 1'600 units. It means that on a daily basis it's only possible to automatically upload **up to 6 videos per day** per Google Project. However, it might be enough as it's possible to fully automate the execution of the backup script and such capacility could be fine. Additionally, note that quotas are applied against the Google Project, and multiple projects can be created.
