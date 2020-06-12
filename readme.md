@@ -6,6 +6,7 @@ Allows to automatically backup your videos to your YouTube account.
 
 * Fully automated upload procedure
 * Automatic detection of already uploaded files (only when uploaded by the script, uses descriptino to store metadata)
+* Ability to specify cut-off period for files to exclude files created earlier
 
 # Prerequsites
 
