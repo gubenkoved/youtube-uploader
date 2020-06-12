@@ -9,9 +9,17 @@ Allows to automatically backup your videos to your YouTube account.
 
 # Prerequsites
 
-In order to use script, you will need to register an application via Google Developer Console and put your Client ID and Client Secret in `client_secrets.json`.
+## Install Python
+
+Python version 3.8.0 or higher is required.
+
+## Install pip requirements
+
+`pip install -r requirements.txt`
 
 ## Register an application
+
+In order to use script, you will need to register an application via Google Developer Console and put your Client ID and Client Secret in `client_secrets.json`.
 
 Navigate to `https://console.developers.google.com/` and create a new project.
 
