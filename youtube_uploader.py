@@ -59,17 +59,20 @@ if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
 
     argparser.add_argument("--dir", required=True,
-                        help="Directory to digest files inside")
+                           help="Directory to digest files inside")
     argparser.add_argument("--playlist", required=False,
-                        help="Playlist to for video to be added to (will be found via contains)")
+                           help="Playlist to for video to be added to (will be found via contains)")
     argparser.add_argument("--client-secrets-file", required=False, default='client_secrets.json',
                            help="Path to client secrets file, when different from client_secrets.json")
+    argparser.add_argument("--credentials-file", required=False, default='credentials.json',
+                           help="Path to stored credentials file, when different from credentials.json")
 
     args = argparser.parse_args()
 
     # construct the client
     youtube: YouTubeClient = YouTubeClientImpl(
-        client_secrets_file_path=args.client_secrets_file)
+        client_secrets_file_path=args.client_secrets_file,
+        credentials_file_path=args.credentials_file)
 
     # authorize the user!
     youtube.authorize()

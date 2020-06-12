@@ -25,11 +25,13 @@ Navigate to `https://console.developers.google.com/` and create a new project.
 
 Go to `Credentials` section and create OAuth Client ID credentials, select "Desktop application" when prompted the application type.
 
+> You will have to setup an OAuth concent screen, but you simply can put an application name into it, anthing else is not required.
+
 ## Add Youtube Data API to your application
 
 Navigate to `https://console.developers.google.com/apis/library/youtube.googleapis.com` or find the API in the Developer Console in the APIs section (search for YouTude Data API V3).
 
-Click the button to add the API to your applciation.
+Click "Enable" button to add the API to your applciation.
 
 ## Put credentials to the client_secrets.json
 

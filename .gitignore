@@ -1,9 +1,8 @@
 /.git
 /.gitignore
 /.vscode
-/client_secrets.json
-/credentials.json
-/my_client_secrets.json
+*client_secrets.json*
+*credentials.json*
 /readme.md
 /youtube_client.py
 /youtube_uploader.py
