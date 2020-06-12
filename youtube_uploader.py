@@ -2,6 +2,8 @@ import argparse
 import os
 import re
 import hashlib
+import logging
+import coloredlogs
 from time import sleep
 from datetime import datetime
 
@@ -40,10 +42,10 @@ def is_video(fileName: str) -> bool:
 def get_files_for_upload(dir: str, creation_cut_off: Optional[datetime]) -> Iterable[str]:
     upload_queue = []
 
-    print(f'Discovering videos in {dir}...')
+    log.info(f'Discovering videos in {dir}...')
 
     for root, subdirs, files in os.walk(dir):
-        print(f'  walking in {root}...')
+        log.info(f'  walking in {root}...')
 
         for file in files:
             if not is_video(file):
@@ -52,14 +54,14 @@ def get_files_for_upload(dir: str, creation_cut_off: Optional[datetime]) -> Iter
             path = os.path.join(root, file)
             created_at = datetime.fromtimestamp(os.path.getctime(path))
 
-            print(f'    looking at {file} (created at: {created_at})')
+            log.info(f'    looking at {file} (created at: {created_at})')
             upload_queue.append(path)
 
     if creation_cut_off:
-        print(f'Creation cut-off date was specified, applying filter... Discovered: {len(upload_queue)}')
+        log.info(f'Creation cut-off date was specified, applying filter... Discovered: {len(upload_queue)}')
         upload_queue = list(filter(lambda path: datetime.fromtimestamp(
             os.path.getctime(path)) >= creation_cut_off, upload_queue))
-        print(f'  after filter: {len(upload_queue)}')
+        log.info(f'  after filter: {len(upload_queue)}')
 
     upload_queue.sort(key=lambda path: os.path.getmtime(path))
 
@@ -89,8 +91,7 @@ def main():
 
     args = argparser.parse_args()
 
-    print(f'YouTube Uploader started at {datetime.now()}')
-    print(f'Arguments: {args.__dict__}')
+    log.info(f'Arguments: {args.__dict__}')
 
     # construct the client
     youtube: YouTubeClient = YouTubeClientImpl(
@@ -103,7 +104,7 @@ def main():
     # get ALL playlists
     playlists_response = youtube.get_my_playlists()
 
-    print(f'Populated {len(playlists_response.playlists)} playlists')
+    log.info(f'Populated {len(playlists_response.playlists)} playlists')
 
     # try to find the target playlist
     target_playlist: Playlist = next(
@@ -113,60 +114,73 @@ def main():
         raise Exception(
             'Unable to find the playlist -- make sure specified string is withing the Playlist Name')
 
-    print(
+    log.info(
         f'Found the target playlist -- {target_playlist.title} ({target_playlist.playlistId})')
 
     all_videos = []
 
-    print(f'Populating ALL videos to detect already uploaded')
+    log.info(f'Populating ALL videos to detect already uploaded')
 
     playlist: Playlist
     for playlist in playlists_response.playlists:
         playlist_videos_response = youtube.get_playlist_videos(
             playlist.playlistId)
-        print(
+        log.info(
             f'  {playlist.title:30} {playlist.playlistId:38} {len(playlist_videos_response.videos):5} items')
         all_videos.extend(playlist_videos_response.videos)
 
-    print(
+    log.info(
         f'Populated {len(all_videos)} videos in total in {len(playlists_response.playlists)} playlists')
 
     # find all files for upload
     upload_queue = get_files_for_upload(args.dir, args.creation_date_cutoff)
 
-    print(f"Discovered {len(upload_queue)} items, start upload procedure")
+    log.info(f"Discovered {len(upload_queue)} items, start upload procedure")
 
     for path in upload_queue:
-        print(f'handling {path}...')
+        log.info(f'handling {path}...')
 
         already_uploaded: Optional[Video] = find_already_uploaded(
             youtube, all_videos, path)
 
         if already_uploaded:
-            print(
+            log.info(
                 f'  already uploaded as {already_uploaded.title} (ID: {already_uploaded.videoId})')
             continue
 
         dir, fileName = os.path.split(path)
         fileNameNoExt = os.path.splitext(fileName)[0]
 
-        print(f'  uploading a video...')
+        log.info(f'  uploading a video...')
         upload_response = youtube.upload_video(
             path, title=fileNameNoExt, privacyLevel='unlisted')
-        print(f'  upload successfull! ID: {upload_response.videoId}')
+        log.info(f'  upload successfull! ID: {upload_response.videoId}')
 
-        print(f'  adding a video to the playlist...')
+        log.info(f'  adding a video to the playlist...')
         youtube.add_video_to_playlist(
             playlistId=target_playlist.playlistId, videoId=upload_response.videoId)
 
-        print(f'  processed!')
+        log.info(f'  processed!')
+
+
+def get_logger(name: str) -> logging.Logger:
+    logger = logging.getLogger(name)
+    log_file_handler = logging.FileHandler("youtube_uploader.log", encoding='utf8')
+    formatter = logging.Formatter("%(asctime)s [%(process)d] - %(name)s - %(levelname)s - %(message)s")
+    log_file_handler.setFormatter(formatter)
+    coloredlogs.install(logger=logger)
+    logger.addHandler(log_file_handler)
+    return logger
+
+log = get_logger("default")
 
 
 if __name__ == '__main__':
     try:
+        log.info(f'YouTube Uploader started!')
         main()
-    except Exception:
-        # let user to see the error before closing ...
-        # print(f'ERROR: {e}...')
-        # sleep(5)
+    except Exception as e:
+        log.error(e)
         raise
+    finally:
+        log.info("finished")
