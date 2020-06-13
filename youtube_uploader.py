@@ -69,15 +69,15 @@ def valid_date(s):
 def init_logging(log_level: str = 'INFO') -> None:
     # file logger
     file_handler = logging.FileHandler("youtube_uploader.log", encoding='utf8')
-    formatter = logging.Formatter(
-        "%(asctime)s [%(process)d] - %(name)s - %(levelname)s - %(message)s")
+    format_template = "%(asctime)s [%(process)d] %(levelname)8s %(name)s %(message)s"
+    formatter = logging.Formatter(format_template)
     file_handler.setFormatter(formatter)
 
     level_name = logging.getLevelName(log_level)
     logging.basicConfig(handlers=[file_handler], level=level_name)
 
     # colored console logger
-    coloredlogs.install(level=level_name)
+    coloredlogs.install(level=level_name, fmt=format_template)
 
     # disable wordy loggers, when something important happens
     # application will see it in form of error to log
