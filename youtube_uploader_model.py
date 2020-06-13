@@ -33,6 +33,9 @@ class YouTubeClient(object):
     def file_hash(self, path) -> str:
         raise NotImplementedError
 
+    def is_video(self, path) -> bool:
+        raise NotImplementedError
+
     def get_my_playlists(self) -> GetMyPlaylistsResponse:
         raise NotImplementedError()
 

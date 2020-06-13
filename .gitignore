@@ -10,3 +10,5 @@
 /__pycache__
 backup.ps1
 youtube_uploader.log
+test.py
+hash_cache.yaml

@@ -29,17 +29,7 @@ def find_already_uploaded(client: YouTubeClient, videos: Iterable[Video], local_
     return None
 
 
-def is_video(fileName: str) -> bool:
-    extensions = ['.mp4', '.mov']
-
-    for ext in extensions:
-        if fileName.lower().endswith(ext):
-            return True
-
-    return False
-
-
-def get_files_for_upload(dir: str, creation_cut_off: Optional[datetime]) -> Iterable[str]:
+def get_files_for_upload(client: YouTubeClient, dir: str, creation_cut_off: Optional[datetime]) -> Iterable[str]:
     upload_queue = []
 
     log.info(f'Discovering videos in {dir}...')
@@ -48,7 +38,7 @@ def get_files_for_upload(dir: str, creation_cut_off: Optional[datetime]) -> Iter
         log.info(f'  walking in {root}...')
 
         for file in files:
-            if not is_video(file):
+            if not client.is_video(file):
                 continue
 
             path = os.path.join(root, file)
@@ -133,7 +123,7 @@ def main():
         f'Populated {len(all_videos)} videos in total in {len(playlists_response.playlists)} playlists')
 
     # find all files for upload
-    upload_queue = get_files_for_upload(args.dir, args.creation_date_cutoff)
+    upload_queue = get_files_for_upload(youtube, args.dir, args.creation_date_cutoff)
 
     log.info(f"Discovered {len(upload_queue)} items, start upload procedure")
 

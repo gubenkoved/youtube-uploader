@@ -1,10 +1,9 @@
-from youtube_uploader_model import YouTubeClient, GetMyPlaylistsResponse, Playlist, PlaylistVideosResponse, Video, UploadVideoResponse
-
 import os
 import http.client
 import httplib2
 import hashlib
 import random
+import logging
 
 from datetime import datetime, time
 
@@ -15,9 +14,12 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client.tools import argparser, run_flow
 
+from youtube_uploader_model import YouTubeClient, GetMyPlaylistsResponse, Playlist, PlaylistVideosResponse, Video, UploadVideoResponse
+from youtube_hasher import YouTubeHasher
+
 
 class YouTubeClientImpl(YouTubeClient):
-    def __init__(self, client_secrets_file_path: str = 'client_secrets.json', credentials_file_path: str = 'credentials.json'):
+    def __init__(self, client_secrets_file_path: str = 'client_secrets.json', credentials_file_path: str = 'credentials.json', log: logging.Logger = None):
         self.scopes = ['https://www.googleapis.com/auth/youtube.readonly',
                        'https://www.googleapis.com/auth/youtube.upload',
                        'https://www.googleapis.com/auth/youtube']  # to add files to playlists
@@ -25,7 +27,8 @@ class YouTubeClientImpl(YouTubeClient):
         self.api_version = 'v3'
         self.client_secrets_file_path = client_secrets_file_path
         self.credentials_file_path = credentials_file_path
-        pass
+        self._hasher = YouTubeHasher('hash_cache.yaml')
+        self._log = log or logging.getLogger('youtube_client')
 
     def _get_authenticated_service(self):
         flow = flow_from_clientsecrets(self.client_secrets_file_path, scope=self.scopes, message="missing secrets message here!")
@@ -118,15 +121,17 @@ class YouTubeClientImpl(YouTubeClient):
 
         return PlaylistVideosResponse(videos)
 
+    def is_video(self, path) -> bool:
+        extensions = ['.mp4', '.mov']
+
+        for ext in extensions:
+            if path.lower().endswith(ext):
+                return True
+
+        return False
+
     def file_hash(self, path) -> str:
-        BLOCKSIZE = 65536
-        hasher = hashlib.md5()
-        with open(path, 'rb') as afile:
-            buf = afile.read(BLOCKSIZE)
-            while len(buf) > 0:
-                hasher.update(buf)
-                buf = afile.read(BLOCKSIZE)
-        return hasher.hexdigest()
+        return self._hasher.md5(path)
 
     def _generate_metadata(self, path: str) -> str:
         dir, fileName = os.path.split(path)
@@ -171,14 +176,14 @@ class YouTubeClientImpl(YouTubeClient):
                 error = "A retriable error occurred: %s" % e
 
             if error is not None:
-                print(error)
+                self._log.warn(error)
                 retry += 1
                 if retry > max_retries:
                     raise Exception("No longer attempting to retry.")
 
                 max_sleep = 2 ** retry
                 sleep_seconds = random.random() * max_sleep
-                print("Sleeping %f seconds and then retrying..." % sleep_seconds)
+                self._log.warn("Sleeping %f seconds and then retrying..." % sleep_seconds)
                 time.sleep(sleep_seconds)
 
     def upload_video(self, path: str, title: str, description: str = '', privacyLevel: str = 'unlisted') -> UploadVideoResponse:
