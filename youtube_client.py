@@ -17,9 +17,11 @@ from oauth2client.tools import argparser, run_flow
 from youtube_uploader_model import YouTubeClient, GetMyPlaylistsResponse, Playlist, PlaylistVideosResponse, Video, UploadVideoResponse
 from youtube_hasher import YouTubeHasher
 
+log = logging.getLogger(__name__)
 
 class YouTubeClientImpl(YouTubeClient):
-    def __init__(self, client_secrets_file_path: str = 'client_secrets.json', credentials_file_path: str = 'credentials.json', log: logging.Logger = None):
+    def __init__(self, client_secrets_file_path: str = 'client_secrets.json', credentials_file_path: str = 'credentials.json'):
+        log.debug('Creating YouTube client...')
         self.scopes = ['https://www.googleapis.com/auth/youtube.readonly',
                        'https://www.googleapis.com/auth/youtube.upload',
                        'https://www.googleapis.com/auth/youtube']  # to add files to playlists
@@ -28,7 +30,6 @@ class YouTubeClientImpl(YouTubeClient):
         self.client_secrets_file_path = client_secrets_file_path
         self.credentials_file_path = credentials_file_path
         self._hasher = YouTubeHasher('hash_cache.yaml')
-        self._log = log or logging.getLogger('youtube_client')
 
     def _get_authenticated_service(self):
         flow = flow_from_clientsecrets(self.client_secrets_file_path, scope=self.scopes, message="missing secrets message here!")
@@ -176,14 +177,14 @@ class YouTubeClientImpl(YouTubeClient):
                 error = "A retriable error occurred: %s" % e
 
             if error is not None:
-                self._log.warn(error)
+                log.warning(error)
                 retry += 1
                 if retry > max_retries:
                     raise Exception("No longer attempting to retry.")
 
                 max_sleep = 2 ** retry
                 sleep_seconds = random.random() * max_sleep
-                self._log.warn("Sleeping %f seconds and then retrying..." % sleep_seconds)
+                log.warning("Sleeping %f seconds and then retrying..." % sleep_seconds)
                 time.sleep(sleep_seconds)
 
     def upload_video(self, path: str, title: str, description: str = '', privacyLevel: str = 'unlisted') -> UploadVideoResponse:

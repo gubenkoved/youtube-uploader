@@ -6,10 +6,11 @@ import os
 from datetime import datetime
 from typing import Optional
 
+log = logging.getLogger(__name__)
+
 class YouTubeHasher(object):
-    def __init__(self, cache_file_path: str, log: logging.Logger = None):
+    def __init__(self, cache_file_path: str):
         self.cache_file_path = cache_file_path
-        self.log = log or logging.getLogger("hasher")
 
     def _save_to_cache(self, path: str, md5: str) -> None:
         mode = 'r+' if os.path.exists(self.cache_file_path) else 'w+'
@@ -28,7 +29,7 @@ class YouTubeHasher(object):
 
     def _get_from_cache(self, path: str) -> Optional[str]:
         if not os.path.exists(self.cache_file_path):
-            self.log.warn('cache does not exist')
+            log.warning('cache does not exist')
             return None
 
         with portalocker.Lock(self.cache_file_path, 'r', timeout=60) as file:
@@ -51,15 +52,15 @@ class YouTubeHasher(object):
         from_cache = self._get_from_cache(path)
 
         if from_cache:
-            self.log.debug(f'Found {path} hash in the cache')
+            log.debug(f'Found {path} hash in the cache')
             return from_cache
 
-        self.log.debug(f'Calculating {path} hash...')
+        log.info(f'Calculating {path} hash...')
         md5 = self._caclculate_md5(path)
 
         try:
             self._save_to_cache(path, md5)
         except Exception as e:
-            self.log.warn(f'unable to save hashing result into the cache: {e}')
+            log.warning(f'unable to save hashing result into the cache: {e}')
 
         return md5

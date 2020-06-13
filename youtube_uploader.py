@@ -65,7 +65,28 @@ def valid_date(s):
         msg = f"Not a valid date: '{s}'"
         raise argparse.ArgumentTypeError(msg)
 
+
+def init_logging(log_level: str = 'INFO') -> None:
+    # file logger
+    file_handler = logging.FileHandler("youtube_uploader.log", encoding='utf8')
+    formatter = logging.Formatter(
+        "%(asctime)s [%(process)d] - %(name)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(formatter)
+
+    level_name = logging.getLevelName(log_level)
+    logging.basicConfig(handlers=[file_handler], level=level_name)
+
+    # colored console logger
+    coloredlogs.install(level=level_name)
+
+    # disable wordy loggers, when something important happens
+    # application will see it in form of error to log
+    logging.getLogger('googleapiclient.discovery_cache').disabled = True
+    logging.getLogger('googleapiclient.discovery').disabled = True
+
 def main():
+    global log
+
     argparser = argparse.ArgumentParser()
 
     argparser.add_argument("--dir", required=True,
@@ -78,9 +99,16 @@ def main():
                            help="Path to stored credentials file, when different from credentials.json")
     argparser.add_argument("--creation-date-cutoff", required=False, default=None, type=valid_date,
                            help="Allows to specify cutoff date (YYYY-MM-DD) for the file creation time in order to be picked up")
+    argparser.add_argument("--log-level", required=False, default='INFO',
+                           help="Logging level (DEBUG, INFO, WARN, ERROR)")
 
     args = argparser.parse_args()
 
+    init_logging(args.log_level)
+
+    log = logging.getLogger("main")
+
+    log.info('YouTube uploader started!')
     log.info(f'Arguments: {args.__dict__}')
 
     # construct the client
@@ -125,7 +153,10 @@ def main():
     # find all files for upload
     upload_queue = get_files_for_upload(youtube, args.dir, args.creation_date_cutoff)
 
-    log.info(f"Discovered {len(upload_queue)} items, start upload procedure")
+    if len(upload_queue) > 0:
+        log.info(f"Discovered {len(upload_queue)} items, start upload procedure")
+    else:
+        log.info('Nothing to upload!')
 
     for path in upload_queue:
         log.info(f'handling {path}...')
@@ -153,24 +184,13 @@ def main():
         log.info(f'  processed!')
 
 
-def get_logger(name: str) -> logging.Logger:
-    logger = logging.getLogger(name)
-    log_file_handler = logging.FileHandler("youtube_uploader.log", encoding='utf8')
-    formatter = logging.Formatter("%(asctime)s [%(process)d] - %(name)s - %(levelname)s - %(message)s")
-    log_file_handler.setFormatter(formatter)
-    coloredlogs.install(logger=logger)
-    logger.addHandler(log_file_handler)
-    return logger
-
-log = get_logger("default")
-
-
 if __name__ == '__main__':
+    global log
+    log: Optional[logging.Logger] = None
+
     try:
-        log.info(f'YouTube Uploader started!')
         main()
     except Exception as e:
-        log.error(e)
+        if log:  # if logging managed to start, use it
+            log.fatal(str(e))
         raise
-    finally:
-        log.info("finished")
