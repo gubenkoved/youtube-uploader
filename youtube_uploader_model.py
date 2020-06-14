@@ -30,11 +30,14 @@ class YouTubeClient(object):
     def authorize(self) -> None:
         raise NotImplementedError()
 
-    def file_hash(self, path) -> str:
-        raise NotImplementedError
+    def file_hash(self, path: str) -> str:
+        raise NotImplementedError()
 
-    def is_video(self, path) -> bool:
-        raise NotImplementedError
+    def is_video(self, path: str) -> bool:
+        raise NotImplementedError()
+
+    def is_matching_video(self, local_hash: str, video: Video) -> bool:
+        raise NotImplementedError()
 
     def get_my_playlists(self) -> GetMyPlaylistsResponse:
         raise NotImplementedError()
@@ -48,5 +51,5 @@ class YouTubeClient(object):
     def add_video_to_playlist(self, playlistId: str, videoId: str) -> None:
         raise NotImplementedError()
 
-    def update_video(self, videoId, newTitle: Optional[str], newDescription: Optional[str]) -> None:
+    def update_video(self, videoId: str, newTitle: Optional[str], newDescription: Optional[str]) -> None:
         raise NotImplementedError()

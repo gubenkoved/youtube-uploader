@@ -131,6 +131,9 @@ class YouTubeClientImpl(YouTubeClient):
 
         return False
 
+    def is_matching_video(self, local_hash: str, video: Video) -> bool:
+        return local_hash in video.description
+
     def file_hash(self, path) -> str:
         return self._hasher.md5(path)
 

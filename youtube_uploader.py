@@ -1,31 +1,21 @@
 import argparse
 import os
-import re
-import hashlib
 import logging
 import coloredlogs
-from time import sleep
 from datetime import datetime
-
 from typing import Iterable, Optional
-from youtube_uploader_model import YouTubeClient, Playlist, Video, UploadVideoResponse
+from youtube_uploader_model import YouTubeClient, Playlist, Video
 from youtube_client import YouTubeClientImpl
 
 
 def find_already_uploaded(client: YouTubeClient, videos: Iterable[Video], local_file_path: str) -> Optional[Video]:
-
     local_hash = client.file_hash(local_file_path)
+
     # work using videos description MD5 inside!
     for video in videos:
-        if 'auto uploaded' not in video.description:
-            continue
+        if client.is_matching_video(local_hash, video):
+            return video
 
-        match = re.search('MD5: (?P<md5>[a-z0-9]+)', video.description)
-        if match:
-            md5 = match.group('md5').lower()
-
-            if local_hash.lower() == md5:
-                return video
     return None
 
 
@@ -171,13 +161,16 @@ def main():
 
         dir, fileName = os.path.split(path)
         fileNameNoExt = os.path.splitext(fileName)[0]
+        size = os.path.getsize(path)
 
-        log.info(f'  uploading a video...')
+        log.info(f'  uploading a video ({size / (1024 * 1024):.2f} MiB)...')
+
         upload_response = youtube.upload_video(
             path, title=fileNameNoExt, privacyLevel='unlisted')
-        log.info(f'  upload successfull! ID: {upload_response.videoId}')
 
-        log.info(f'  adding a video to the playlist...')
+        log.info(f'  upload successfull, ID: {upload_response.videoId}')
+
+        log.info(f'  adding video to the playlist... ({upload_response.videoId} -> {target_playlist.playlistId})')
         youtube.add_video_to_playlist(
             playlistId=target_playlist.playlistId, videoId=upload_response.videoId)
 
