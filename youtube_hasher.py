@@ -1,42 +1,32 @@
 import hashlib
-import portalocker
-import yaml
 import logging
-import os
 from datetime import datetime
 from typing import Optional
+from youtube_cache import YoutubeCacheBase
 
 log = logging.getLogger(__name__)
 
 class YouTubeHasher(object):
-    def __init__(self, cache_file_path: str):
-        self.cache_file_path = cache_file_path
+    def __init__(self, cache: YoutubeCacheBase):
+        self.cache = cache
+        self.section = 'file-hashes-v1'
 
     def _save_to_cache(self, path: str, md5: str) -> None:
-        mode = 'r+' if os.path.exists(self.cache_file_path) else 'w+'
-        # use portalocked to handle cases of multiple processes using the same cache file
-        with portalocker.Lock(self.cache_file_path, mode, timeout=60) as file:
-            data = yaml.load(file, Loader=yaml.FullLoader) or {}
-            if path not in data:
-                data[path] = {}
-            data[path]['md5'] = md5
-            data[path]['calculated_at'] = str(datetime.now())
-            file.seek(0)
-            yaml.dump(data, file)
-            # closing routine as per https://readthedocs.org/projects/portalocker/downloads/pdf/latest/
-            file.flush()
-            os.fsync(file.fileno())
+
+        val = {
+            'md5': md5,
+            'calculated_at': datetime.now()
+        }
+
+        self.cache.update(self.section, path, val)
 
     def _get_from_cache(self, path: str) -> Optional[str]:
-        if not os.path.exists(self.cache_file_path):
-            log.warning('cache does not exist')
+        val = self.cache.get(self.section, path)
+
+        if val is None or 'md5' not in val:
             return None
 
-        with portalocker.Lock(self.cache_file_path, 'r', timeout=60) as file:
-            data = yaml.load(file, Loader=yaml.FullLoader)
-            if not data or path not in data or 'md5' not in data[path]:
-                return None
-            return data[path]['md5']
+        return val['md5']
 
     def _caclculate_md5(self, path: str) -> str:
         BLOCKSIZE = 65536

@@ -4,8 +4,9 @@ import httplib2
 import hashlib
 import random
 import logging
-
+from copy import deepcopy
 from datetime import datetime, time
+from typing import Optional
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -16,6 +17,7 @@ from oauth2client.tools import argparser, run_flow
 
 from youtube_uploader_model import YouTubeClient, GetMyPlaylistsResponse, Playlist, PlaylistVideosResponse, Video, UploadVideoResponse
 from youtube_hasher import YouTubeHasher
+from youtube_cache import YoutubeCacheBase, YamlYoutubeCache
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +31,15 @@ class YouTubeClientImpl(YouTubeClient):
         self.api_version = 'v3'
         self.client_secrets_file_path = client_secrets_file_path
         self.credentials_file_path = credentials_file_path
-        self._hasher = YouTubeHasher('hash_cache.yaml')
+        self._cache = YamlYoutubeCache('cache.yaml')
+        self._hasher = YouTubeHasher(self._cache)
+
+    def __enter__(self):
+        self._cache.read_from_disk()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._cache.flush()
 
     def _get_authenticated_service(self):
         flow = flow_from_clientsecrets(self.client_secrets_file_path, scope=self.scopes, message="missing secrets message here!")
@@ -76,10 +86,11 @@ class YouTubeClientImpl(YouTubeClient):
                 playlistId = item['id']
                 title = item['snippet']['title']
                 description = item['snippet']['description']
-                publishedAt = item['snippet']['publishedAt']
-                itemCount = item['contentDetails']['itemCount']
+                # publishedAt = item['snippet']['publishedAt']
+                # itemCount = item['contentDetails']['itemCount']
+                etag = item['etag']
 
-                playlist = Playlist(playlistId, title, description=description)
+                playlist = Playlist(playlistId, title, description=description, etag=etag)
                 playlists.append(playlist)
 
             if 'nextPageToken' in response:
@@ -89,7 +100,34 @@ class YouTubeClientImpl(YouTubeClient):
 
         return GetMyPlaylistsResponse(playlists)
 
-    def get_playlist_videos(self, playlistId: str) -> PlaylistVideosResponse:
+    def _get_playlist_current_etag(self, playlist: str) -> str:
+        youtube = self._get_authenticated_service()
+
+        playlist_request = youtube.playlists().list(
+            part="snippet",
+            maxResults=25,
+            id=playlistId,
+        )
+
+        playlist_response = playlist_request.execute()
+        playlist_etag = playlist_response['etag']
+        return playlist_etag
+
+    def get_playlist_videos(self, playlistId: str, etag: Optional[str] = None) -> PlaylistVideosResponse:
+        playlist_etag = etag or self._get_playlist_current_etag(playlist)
+
+        # check in the cache!
+        cache_section = "playlists"
+        data_ver = 'v1'
+        from_cache = self._cache.get(cache_section, playlistId)
+
+        if (from_cache is not None
+                and 'etag' in from_cache and from_cache['etag'] == playlist_etag  # check etag
+                and 'version' in from_cache and from_cache['version'] == data_ver  # check data contract
+                and 'data' in from_cache):  # check data is there
+            return from_cache['data']
+
+        log.debug(f'cache miss for playlist content for {playlistId}, populating...')
 
         youtube = self._get_authenticated_service()
 
@@ -111,7 +149,6 @@ class YouTubeClientImpl(YouTubeClient):
                 videoId = item['id']
                 title = item['snippet']['title']
                 description = item['snippet']['description']
-                #publishedAt = item['contentDetails']['videoPublishedAt']
 
                 videos.append(Video(videoId, title, description))
 
@@ -120,7 +157,19 @@ class YouTubeClientImpl(YouTubeClient):
 
             pageToken = response['nextPageToken']
 
-        return PlaylistVideosResponse(videos)
+        result = PlaylistVideosResponse(videos)
+
+        # cache in the cache
+        try:
+            cache_val = {'data': result,
+                         'version': data_ver,
+                         'etag': playlist_etag}
+
+            self._cache.update(cache_section, playlistId, cache_val)
+        except Exception as e:
+            log.warning(f'An error occurred cachning playlist listing results: {e}')
+
+        return result
 
     def is_video(self, path) -> bool:
         extensions = ['.mp4', '.mov']

@@ -6,10 +6,11 @@ class UploadVideoResponse(object):
         self.videoId = videoId
 
 class Playlist(object):
-    def __init__(self, playlistId: str, title: str, description: str = None):
+    def __init__(self, playlistId: str, title: str, description: str = None, etag: str = None):
         self.playlistId = playlistId
         self.title = title
         self.description = description
+        self.etag = etag
 
 class GetMyPlaylistsResponse(object):
     def __init__(self, playlists: Iterable[Playlist]):
@@ -42,7 +43,7 @@ class YouTubeClient(object):
     def get_my_playlists(self) -> GetMyPlaylistsResponse:
         raise NotImplementedError()
 
-    def get_playlist_videos(self, playlistId: str) -> PlaylistVideosResponse:
+    def get_playlist_videos(self, playlistId: str, etag: Optional[str] = None) -> PlaylistVideosResponse:
         raise NotImplementedError()
 
     def upload_video(self, path: str, title: str, description: str = '', privacyLevel: str = 'unlisted') -> UploadVideoResponse:
