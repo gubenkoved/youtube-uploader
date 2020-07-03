@@ -81,7 +81,7 @@ def main():
 
     argparser.add_argument("--dir", required=True,
                            help="Directory to digest files inside")
-    argparser.add_argument("--playlist", required=False,
+    argparser.add_argument("--playlist", required=True,
                            help="Playlist to for video to be added to (will be found via contains)")
     argparser.add_argument("--client-secrets-file", required=False, default='client_secrets.json',
                            help="Path to client secrets file, when different from client_secrets.json")
