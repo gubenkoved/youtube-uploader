@@ -32,14 +32,13 @@ class YamlYoutubeCache(YoutubeCacheBase):
     def read_from_disk(self):
         log.info('reading the cache from the disk...')
 
-        if not os.path.exists(self.path):
+        if os.path.exists(self.path):
+            with open(self.path, 'r') as file:
+                self._data = yaml.load(file, Loader=yaml.FullLoader) or {}
+                log.info('  ok')
+        else:
             log.warning('cache does not exist')
             self._data = {}  # init as empty cache
-
-        with open(self.path, 'r') as file:
-            self._data = yaml.load(file, Loader=yaml.FullLoader) or {}
-
-        log.info('  ok')
 
     def flush(self):
         log.info('flushing the cache to the disk...')
