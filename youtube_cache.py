@@ -33,9 +33,12 @@ class YamlYoutubeCache(YoutubeCacheBase):
         log.info('reading the cache from the disk...')
 
         if os.path.exists(self.path):
-            with open(self.path, 'r') as file:
-                self._data = yaml.load(file, Loader=yaml.FullLoader) or {}
-                log.info('  ok')
+            try:
+                with open(self.path, 'r') as file:
+                    self._data = yaml.load(file, Loader=yaml.FullLoader) or {}
+                    log.info('  ok')
+            except yaml.scanner.ScannerError as scannerError:
+                raise Exception(f'Cache YAML file looks broken -- consider removing it and retrying: {scannerError}')
         else:
             log.warning('cache does not exist')
             self._data = {}  # init as empty cache
