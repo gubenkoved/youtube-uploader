@@ -63,3 +63,15 @@ Each Google Project gets a specific quota per day. For YouTube DataAPI it's 10'0
 Additionally, note that quotas are applied against the Google Project, and **multiple projects** can be created.
 
 Please also note that you can apply for **extended quotas** by filling the form (https://support.google.com/youtube/contact/yt_api_form?hl=en) -- my application for 10x quota was fulfilled, however it took more than a week.
+
+## July 28, 2020
+
+Today there was an announcement made that affects automatic uploads:
+
+> All videos uploaded via the videos.insert endpoint from unverified API Projects created after July 28, 2020 will be **restricted to private viewing mode**. To lift this restriction, each **project must undergo an audit** to verify compliance with the Terms of Service.
+
+> Creators who use an affected project to upload video will receive an email explaining that their video is locked as private, and that they can avoid the restriction by using an official or audited service.
+ 
+> Existing API projects will not be affected by this change, but we strongly recommend that all developers complete a compliance audit for their projects to ensure continued access to the YouTube API Services.
+
+So, it means that for API projects created after July 28, 2020 we either undergo an audit (which is possible, but takes some time) or stick with private videos (which can not be shared externally).
