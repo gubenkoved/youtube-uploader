@@ -37,7 +37,11 @@ Click "Enable" button to add the API to your application.
 
 ## Put credentials to the client_secrets.json
 
-Simply put the Client ID and Client Secret into the client_secrets.json file.
+Simply *put the Client ID and Client Secret* into the client_secrets.json file (see the template in the repository).
+
+Alternatively, *you can download the client secrets file directly from the Google Console* by going to `https://console.developers.google.com/apis/credentials` and clicking the download button near to the newly created OAuth Client.
+
+Note that you do NOT have to create "credentials file" as it will be automatically created during the first run against new OAuth client.
 
 # Usage
 
