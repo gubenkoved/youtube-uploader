@@ -45,10 +45,9 @@ class YamlYoutubeCache(YoutubeCacheBase):
 
     def flush(self):
         log.info('flushing the cache to the disk...')
-        mode = 'r+' if os.path.exists(self.path) else 'w+'
 
         # use portalocked to handle cases of multiple processes using the same cache file
-        with open(self.path, mode) as file:
+        with open(self.path, 'w') as file:
             yaml.dump(self._data, file)
         log.info('  ok')
 
