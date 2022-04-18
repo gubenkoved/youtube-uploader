@@ -5,6 +5,7 @@ class UploadVideoResponse(object):
     def __init__(self, videoId: str):
         self.videoId = videoId
 
+
 class Playlist(object):
     def __init__(self, playlistId: str, title: str, description: str = None, etag: str = None):
         self.playlistId = playlistId
@@ -12,15 +13,18 @@ class Playlist(object):
         self.description = description
         self.etag = etag
 
+
 class GetMyPlaylistsResponse(object):
     def __init__(self, playlists: Iterable[Playlist]):
         self.playlists = playlists
+
 
 class Video(object):
     def __init__(self, videoId: str, title: str, description: str):
         self.videoId = videoId
         self.title = title
         self.description = description
+
 
 class PlaylistVideosResponse(object):
     def __init__(self, videos: Iterable[Video]):

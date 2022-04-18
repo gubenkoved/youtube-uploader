@@ -27,7 +27,7 @@ Navigate to `https://console.developers.google.com/` and create a new project.
 
 Go to `Credentials` section and create OAuth Client ID credentials, select "Desktop application" when prompted the application type.
 
-> You will have to setup an OAuth concent screen, but you simply can put an application name into it, anything else is not required.
+> You will have to setup an OAuth consent screen, but you simply can put an application name into it, anything else is not required.
 
 ## Add YouTube Data API to your application
 

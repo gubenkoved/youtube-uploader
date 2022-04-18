@@ -1,12 +1,11 @@
-import os
-import portalocker
-import yaml
 import logging
-import time
+import os
 from typing import Optional
 
+import yaml
 
 log = logging.getLogger(__name__)
+
 
 class YoutubeCacheBase():
     def get(self, section: str, key: str) -> Optional[object]:
@@ -35,7 +34,7 @@ class YamlYoutubeCache(YoutubeCacheBase):
         if os.path.exists(self.path):
             try:
                 with open(self.path, 'r') as file:
-                    self._data = yaml.load(file, Loader=yaml.FullLoader) or {}
+                    self._data = yaml.load(file, Loader=yaml.Loader) or {}
                     log.info('  ok')
             except yaml.scanner.ScannerError as scannerError:
                 raise Exception(f'Cache YAML file looks broken -- consider removing it and retrying: {scannerError}')
@@ -52,6 +51,9 @@ class YamlYoutubeCache(YoutubeCacheBase):
         log.info('  ok')
 
     def update(self, section: str, key: str, value: Optional[object]) -> None:
+        if self._data is None:
+            self.read_from_disk()
+
         if section not in self._data:
             self._data[section] = {}
 

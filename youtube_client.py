@@ -1,25 +1,25 @@
-import os
 import http.client
-import httplib2
-import hashlib
-import random
 import logging
-from copy import deepcopy
+import os
+import random
 from datetime import datetime, time
 from typing import Optional
 
+import httplib2
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
-from oauth2client.tools import argparser, run_flow
+from oauth2client.tools import run_flow
 
-from youtube_uploader_model import YouTubeClient, GetMyPlaylistsResponse, Playlist, PlaylistVideosResponse, Video, UploadVideoResponse
+from youtube_cache import YamlYoutubeCache
 from youtube_hasher import YouTubeHasher
-from youtube_cache import YoutubeCacheBase, YamlYoutubeCache
+from youtube_uploader_model import YouTubeClient, GetMyPlaylistsResponse, Playlist, PlaylistVideosResponse, Video, \
+    UploadVideoResponse
 
 log = logging.getLogger(__name__)
+
 
 class YouTubeClientImpl(YouTubeClient):
     def __init__(self, client_secrets_file_path: str = 'client_secrets.json', credentials_file_path: str = 'credentials.json'):
