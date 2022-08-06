@@ -74,6 +74,7 @@ def init_logging(log_level: str = 'INFO') -> None:
     logging.getLogger('googleapiclient.discovery_cache').disabled = True
     logging.getLogger('googleapiclient.discovery').disabled = True
 
+
 def main():
     global log
 
@@ -91,6 +92,9 @@ def main():
                            help="Allows to specify cutoff date (YYYY-MM-DD) for the file creation time in order to be picked up")
     argparser.add_argument("--log-level", required=False, default='INFO',
                            help="Logging level (DEBUG, INFO, WARN, ERROR)")
+    argparser.add_argument("--disable-ssl-validation", required=False, default=False,
+                           action=argparse.BooleanOptionalAction,
+                           help="Disables SSL validation")
 
     args = argparser.parse_args()
 
@@ -106,7 +110,8 @@ def main():
     youtube: YouTubeClient
     with YouTubeClientImpl(
         client_secrets_file_path=args.client_secrets_file,
-            credentials_file_path=args.credentials_file) as youtube:
+            credentials_file_path=args.credentials_file,
+            disable_ssl_validation=args.disable_ssl_validation) as youtube:
 
         # authorize the user!
         youtube.authorize()

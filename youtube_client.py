@@ -22,7 +22,11 @@ log = logging.getLogger(__name__)
 
 
 class YouTubeClientImpl(YouTubeClient):
-    def __init__(self, client_secrets_file_path: str = 'client_secrets.json', credentials_file_path: str = 'credentials.json'):
+    def __init__(
+            self,
+            client_secrets_file_path: str = 'client_secrets.json',
+            credentials_file_path: str = 'credentials.json',
+            disable_ssl_validation: bool = False):
         log.debug('Creating YouTube client...')
         self.scopes = ['https://www.googleapis.com/auth/youtube.readonly',
                        'https://www.googleapis.com/auth/youtube.upload',
@@ -33,6 +37,7 @@ class YouTubeClientImpl(YouTubeClient):
         self.credentials_file_path = credentials_file_path
         self._cache = YamlYoutubeCache('cache.yaml')
         self._hasher = YouTubeHasher(self._cache)
+        self._disable_ssl_validation = disable_ssl_validation
 
     def __enter__(self):
         self._cache.read_from_disk()
@@ -42,7 +47,11 @@ class YouTubeClientImpl(YouTubeClient):
         self._cache.flush()
 
     def _get_authenticated_service(self):
-        flow = flow_from_clientsecrets(self.client_secrets_file_path, scope=self.scopes, message="missing secrets message here!")
+        flow = flow_from_clientsecrets(
+            self.client_secrets_file_path,
+            scope=self.scopes,
+            message="missing secrets message here!"
+        )
 
         storage = Storage(self.credentials_file_path)
         credentials = storage.get()
@@ -60,7 +69,12 @@ class YouTubeClientImpl(YouTubeClient):
         if credentials is None or credentials.invalid:
             credentials = run_flow(flow, storage, args)
 
-        return build(self.api_service, self.api_version, http=credentials.authorize(httplib2.Http()))
+        return build(
+            self.api_service,
+            self.api_version,
+            http=credentials.authorize(
+                httplib2.Http(disable_ssl_certificate_validation=self._disable_ssl_validation))
+        )
 
     def authorize(self) -> None:
         _ = self._get_authenticated_service()
