@@ -3,7 +3,7 @@ import os
 import logging
 import coloredlogs
 from datetime import datetime
-from typing import Iterable, Optional
+from typing import Iterable, Optional, List
 from youtube_uploader_model import YouTubeClient, Playlist, Video
 from youtube_client import YouTubeClientImpl
 
@@ -19,7 +19,7 @@ def find_already_uploaded(client: YouTubeClient, videos: Iterable[Video], local_
     return None
 
 
-def get_files_for_upload(client: YouTubeClient, dir: str, creation_cut_off: Optional[datetime]) -> Iterable[str]:
+def get_files_for_upload(client: YouTubeClient, dir: str, creation_cut_off: Optional[datetime]) -> List[str]:
     upload_queue = []
 
     log.info(f'Discovering videos in {dir}...')

@@ -59,7 +59,7 @@ class YamlYoutubeCache(YoutubeCacheBase):
 
         self._data[section][key] = value
 
-    def get(self, section: str, key: str) -> Optional[str]:
+    def get(self, section: str, key: str) -> Optional[object]:
         if self._data is None:
             self.read_from_disk()
 

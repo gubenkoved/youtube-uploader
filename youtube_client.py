@@ -114,7 +114,7 @@ class YouTubeClientImpl(YouTubeClient):
 
         return GetMyPlaylistsResponse(playlists)
 
-    def _get_playlist_current_etag(self, playlist: str) -> str:
+    def _get_playlist_current_etag(self, playlistId: str) -> str:
         youtube = self._get_authenticated_service()
 
         playlist_request = youtube.playlists().list(
@@ -128,7 +128,7 @@ class YouTubeClientImpl(YouTubeClient):
         return playlist_etag
 
     def get_playlist_videos(self, playlistId: str, etag: Optional[str] = None) -> PlaylistVideosResponse:
-        playlist_etag = etag or self._get_playlist_current_etag(playlist)
+        playlist_etag = etag or self._get_playlist_current_etag(playlistId)
 
         # check in the cache!
         cache_section = "playlists"
@@ -181,7 +181,7 @@ class YouTubeClientImpl(YouTubeClient):
 
             self._cache.update(cache_section, playlistId, cache_val)
         except Exception as e:
-            log.warning(f'An error occurred cachning playlist listing results: {e}')
+            log.warning(f'An error occurred caching playlist listing results: {e}')
 
         return result
 
