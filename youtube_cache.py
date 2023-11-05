@@ -29,13 +29,13 @@ class YamlYoutubeCache(YoutubeCacheBase):
         self.flush()
 
     def read_from_disk(self):
-        log.info('reading the cache from the disk...')
+        log.debug('reading the cache from the disk...')
 
         if os.path.exists(self.path):
             try:
                 with open(self.path, 'r') as file:
                     self._data = yaml.load(file, Loader=yaml.Loader) or {}
-                    log.info('  ok')
+                    log.debug('  ok')
             except yaml.scanner.ScannerError as scannerError:
                 raise Exception(f'Cache YAML file looks broken -- consider removing it and retrying: {scannerError}')
         else:
@@ -43,12 +43,12 @@ class YamlYoutubeCache(YoutubeCacheBase):
             self._data = {}  # init as empty cache
 
     def flush(self):
-        log.info('flushing the cache to the disk...')
+        log.debug('flushing the cache to the disk...')
 
         # use portalocked to handle cases of multiple processes using the same cache file
         with open(self.path, 'w') as file:
             yaml.dump(self._data, file)
-        log.info('  ok')
+        log.debug('  ok')
 
     def update(self, section: str, key: str, value: Optional[object]) -> None:
         if self._data is None:
@@ -67,4 +67,3 @@ class YamlYoutubeCache(YoutubeCacheBase):
             return None
 
         return self._data[section][key]
-

@@ -22,10 +22,10 @@ def find_already_uploaded(client: YouTubeClient, videos: Iterable[Video], local_
 def get_files_for_upload(client: YouTubeClient, dir: str, creation_cut_off: Optional[datetime]) -> List[str]:
     upload_queue = []
 
-    log.info(f'Discovering videos in {dir}...')
+    log.debug(f'Discovering videos in {dir}...')
 
     for root, subdirs, files in os.walk(dir):
-        log.info(f'  walking in {root}...')
+        log.debug(f'  walking in {root}...')
 
         for file in files:
             if not client.is_video(file):
@@ -34,14 +34,15 @@ def get_files_for_upload(client: YouTubeClient, dir: str, creation_cut_off: Opti
             path = os.path.join(root, file)
             created_at = datetime.fromtimestamp(os.path.getctime(path))
 
-            log.info(f'    looking at {file} (created at: {created_at})')
+            log.debug(f'    looking at {file} (created at: {created_at})')
             upload_queue.append(path)
 
     if creation_cut_off:
-        log.info(f'Creation cut-off date was specified, applying filter... Discovered: {len(upload_queue)}')
+        log.debug(f'Creation cut-off date was specified, applying filter... '
+                  f'Discovered: {len(upload_queue)}')
         upload_queue = list(filter(lambda path: datetime.fromtimestamp(
             os.path.getctime(path)) >= creation_cut_off, upload_queue))
-        log.info(f'  after filter: {len(upload_queue)}')
+        log.debug(f'  after filter: {len(upload_queue)}')
 
     upload_queue.sort(key=lambda path: os.path.getmtime(path))
 
@@ -102,9 +103,9 @@ def main():
 
     log = logging.getLogger("main")
 
-    log.info('YouTube uploader started!')
-    log.info(f'CWD: {os.getcwd()}')
-    log.info(f'Arguments: {args.__dict__}')
+    log.info(f'YouTube uploader started ({args.dir})!')
+    log.debug(f'CWD: {os.getcwd()}')
+    log.debug(f'Arguments: {args.__dict__}')
 
     # construct the client
     youtube: YouTubeClient
@@ -119,7 +120,7 @@ def main():
         # get ALL playlists
         playlists_response = youtube.get_my_playlists()
 
-        log.info(f'Populated {len(playlists_response.playlists)} playlists')
+        log.debug(f'Populated {len(playlists_response.playlists)} playlists')
 
         # try to find the target playlist
         target_playlist: Playlist = next(
@@ -127,45 +128,47 @@ def main():
 
         if not target_playlist:
             raise Exception(
-                'Unable to find the playlist -- make sure specified string is withing the Playlist Name')
+                'Unable to find the playlist -- make sure specified string is within the Playlist Name')
 
-        log.info(
+        log.debug(
             f'Found the target playlist -- {target_playlist.title} ({target_playlist.playlistId})')
 
         all_videos = []
 
-        log.info(f'Populating ALL videos to detect already uploaded')
+        log.debug(f'Populating ALL videos to detect already uploaded')
 
         playlist: Playlist
         for playlist in playlists_response.playlists:
             playlist_videos_response = youtube.get_playlist_videos(playlist.playlistId, etag=playlist.etag)
-            log.info(
+            log.debug(
                 f'  {playlist.title:30} {playlist.playlistId:38} {len(playlist_videos_response.videos):5} items')
             all_videos.extend(playlist_videos_response.videos)
 
-        log.info(
+        log.debug(
             f'Populated {len(all_videos)} videos in total in {len(playlists_response.playlists)} playlists')
 
         # find all files for upload
         upload_queue = get_files_for_upload(youtube, args.dir, args.creation_date_cutoff)
 
         if len(upload_queue) > 0:
-            log.info(f"Discovered {len(upload_queue)} items, start upload procedure")
+            log.debug(f"Discovered {len(upload_queue)} items, start upload procedure")
         else:
             log.info('Nothing to upload!')
 
+        upload_count = 0
+
         for path in upload_queue:
-            log.info(f'handling {path}...')
+            log.debug(f'handling {path}...')
 
             already_uploaded: Optional[Video] = find_already_uploaded(
                 youtube, all_videos, path)
 
             if already_uploaded:
-                log.info(
+                log.debug(
                     f'  already uploaded as {already_uploaded.title} (ID: {already_uploaded.videoId})')
                 continue
 
-            dir, fileName = os.path.split(path)
+            _, fileName = os.path.split(path)
             fileNameNoExt = os.path.splitext(fileName)[0]
             size = os.path.getsize(path)
 
@@ -181,6 +184,13 @@ def main():
                 playlistId=target_playlist.playlistId, videoId=upload_response.videoId)
 
             log.info(f'  processed!')
+
+            upload_count += 1
+            
+        if upload_count > 0:
+            log.info(f'Uploaded {upload_count} new videos!')
+        else:
+            log.info(f'No new videos uploaded')
 
 
 if __name__ == '__main__':
