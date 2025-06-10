@@ -59,7 +59,7 @@ pyparsing==3.1.2
     # via httplib2
 pyyaml==6.0.1
     # via -r requirements.in
-requests==2.32.3
+requests==2.32.4
     # via google-api-core
 rsa==4.9
     # via
