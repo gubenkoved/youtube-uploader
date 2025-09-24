@@ -19,7 +19,12 @@ def find_already_uploaded(client: YouTubeClient, videos: Iterable[Video], local_
     return None
 
 
-def get_files_for_upload(client: YouTubeClient, dir: str, creation_cut_off: Optional[datetime]) -> List[str]:
+def get_files_for_upload(
+        client: YouTubeClient,
+        dir: str,
+        creation_cut_off: Optional[datetime],
+        modification_cut_off: Optional[datetime] = None,
+) -> List[str]:
     upload_queue = []
 
     log.debug(f'Discovering videos in {dir}...')
@@ -33,8 +38,9 @@ def get_files_for_upload(client: YouTubeClient, dir: str, creation_cut_off: Opti
 
             path = os.path.join(root, file)
             created_at = datetime.fromtimestamp(os.path.getctime(path))
+            modified_at = datetime.fromtimestamp(os.path.getmtime(path))
 
-            log.debug(f'    looking at {file} (created at: {created_at})')
+            log.debug(f'    looking at {file} (created at: {created_at}, modified at: {modified_at})')
             upload_queue.append(path)
 
     if creation_cut_off:
@@ -42,7 +48,14 @@ def get_files_for_upload(client: YouTubeClient, dir: str, creation_cut_off: Opti
                   f'Discovered: {len(upload_queue)}')
         upload_queue = list(filter(lambda path: datetime.fromtimestamp(
             os.path.getctime(path)) >= creation_cut_off, upload_queue))
-        log.debug(f'  after filter: {len(upload_queue)}')
+        log.debug(f'  after creation date filter: {len(upload_queue)}')
+
+    if modification_cut_off:
+        log.debug(f'Modification cut-off date was specified, applying filter... '
+                  f'Discovered: {len(upload_queue)}')
+        upload_queue = list(filter(lambda path: datetime.fromtimestamp(
+            os.path.getmtime(path)) >= modification_cut_off, upload_queue))
+        log.debug(f'  after modification date filter: {len(upload_queue)}')
 
     upload_queue.sort(key=lambda path: os.path.getmtime(path))
 
@@ -91,6 +104,8 @@ def main():
                            help="Path to stored credentials file, when different from credentials.json")
     argparser.add_argument("--creation-date-cutoff", required=False, default=None, type=valid_date,
                            help="Allows to specify cutoff date (YYYY-MM-DD) for the file creation time in order to be picked up")
+    argparser.add_argument("--modification-date-cutoff", required=False, default=None, type=valid_date,
+                           help="Allows to specify cutoff date (YYYY-MM-DD) for the file modification time in order to be picked up")
     argparser.add_argument("--log-level", required=False, default='INFO',
                            help="Logging level (DEBUG, INFO, WARN, ERROR)")
     argparser.add_argument("--disable-ssl-validation", required=False, default=False,
@@ -148,7 +163,8 @@ def main():
             f'Populated {len(all_videos)} videos in total in {len(playlists_response.playlists)} playlists')
 
         # find all files for upload
-        upload_queue = get_files_for_upload(youtube, args.dir, args.creation_date_cutoff)
+        upload_queue = get_files_for_upload(
+            youtube, args.dir, args.creation_date_cutoff, args.modification_date_cutoff)
 
         if len(upload_queue) > 0:
             log.debug(f"Discovered {len(upload_queue)} items, start upload procedure")
@@ -186,7 +202,7 @@ def main():
             log.info(f'  processed!')
 
             upload_count += 1
-            
+
         if upload_count > 0:
             log.info(f'Uploaded {upload_count} new videos!')
         else:
