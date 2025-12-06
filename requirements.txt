@@ -69,5 +69,5 @@ six==1.17.0
     # via oauth2client
 uritemplate==4.2.0
     # via google-api-python-client
-urllib3==2.5.0
+urllib3==2.6.0
     # via requests
