@@ -12,7 +12,7 @@ coloredlogs==15.0.1
     # via -r requirements.in
 google-api-core==2.29.0
     # via google-api-python-client
-google-api-python-client==2.187.0
+google-api-python-client==2.188.0
     # via -r requirements.in
 google-auth==2.47.0
     # via
@@ -23,7 +23,7 @@ google-auth-httplib2==0.3.0
     # via google-api-python-client
 googleapis-common-protos==1.72.0
     # via google-api-core
-httplib2==0.31.0
+httplib2==0.31.1
     # via
     #   -r requirements.in
     #   google-api-python-client
@@ -44,7 +44,7 @@ protobuf==6.33.4
     #   google-api-core
     #   googleapis-common-protos
     #   proto-plus
-pyasn1==0.6.1
+pyasn1==0.6.2
     # via
     #   oauth2client
     #   pyasn1-modules
