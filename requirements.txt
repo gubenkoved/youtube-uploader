@@ -12,11 +12,11 @@ charset-normalizer==3.4.4
     # via requests
 coloredlogs==15.0.1
     # via -r requirements.in
-cryptography==46.0.4
+cryptography==46.0.5
     # via google-auth
 google-api-core==2.29.0
     # via google-api-python-client
-google-api-python-client==2.189.0
+google-api-python-client==2.190.0
     # via -r requirements.in
 google-auth==2.48.0
     # via
