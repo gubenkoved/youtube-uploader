@@ -20,6 +20,8 @@ from youtube_uploader_model import YouTubeClient, GetMyPlaylistsResponse, Playli
 
 log = logging.getLogger(__name__)
 
+SUPPORTED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.wmv', '.m4v', '.flv', '.webm', '.mpeg', '.mpg']
+
 
 class YouTubeClientImpl(YouTubeClient):
     def __init__(
@@ -186,9 +188,7 @@ class YouTubeClientImpl(YouTubeClient):
         return result
 
     def is_video(self, path) -> bool:
-        extensions = ['.mp4', '.mov']
-
-        for ext in extensions:
+        for ext in SUPPORTED_VIDEO_EXTENSIONS:
             if path.lower().endswith(ext):
                 return True
 
