@@ -67,3 +67,4 @@ class YamlYoutubeCache(YoutubeCacheBase):
             return None
 
         return self._data[section][key]
+

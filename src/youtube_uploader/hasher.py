@@ -2,9 +2,11 @@ import hashlib
 import logging
 from datetime import datetime
 from typing import Optional
-from youtube_cache import YoutubeCacheBase
+
+from youtube_uploader.cache import YoutubeCacheBase
 
 log = logging.getLogger(__name__)
+
 
 class YouTubeHasher(object):
     def __init__(self, cache: YoutubeCacheBase):
@@ -12,12 +14,10 @@ class YouTubeHasher(object):
         self.section = 'file-hashes-v1'
 
     def _save_to_cache(self, path: str, md5: str) -> None:
-
         val = {
             'md5': md5,
             'calculated_at': datetime.now()
         }
-
         self.cache.update(self.section, path, val)
 
     def _get_from_cache(self, path: str) -> Optional[str]:
@@ -54,3 +54,4 @@ class YouTubeHasher(object):
             log.warning(f'unable to save hashing result into the cache: {e}')
 
         return md5
+

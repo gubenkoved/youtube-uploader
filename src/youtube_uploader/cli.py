@@ -1,11 +1,15 @@
 import argparse
-import os
 import logging
-import coloredlogs
+import os
 from datetime import datetime
 from typing import Iterable, Optional, List
-from youtube_uploader_model import YouTubeClient, Playlist, Video
-from youtube_client import YouTubeClientImpl
+
+import coloredlogs
+
+from youtube_uploader.model import YouTubeClient, Playlist, Video
+from youtube_uploader.client import YouTubeClientImpl
+
+log: Optional[logging.Logger] = None
 
 
 def find_already_uploaded(client: YouTubeClient, videos: Iterable[Video], local_file_path: str) -> Optional[Video]:
@@ -209,13 +213,12 @@ def main():
             log.info(f'No new videos uploaded')
 
 
-if __name__ == '__main__':
-    global log
-    log: Optional[logging.Logger] = None
-
+def entrypoint():
+    """Console script entrypoint with top-level exception handling."""
     try:
         main()
     except Exception as e:
-        if log:  # if logging managed to start, use it
+        if log:
             log.fatal(str(e))
         raise
+

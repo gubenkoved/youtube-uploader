@@ -9,3 +9,9 @@ credentials.json
 backup.ps1
 *.log
 cache.yaml
+test-cache.yaml
+
+# build artefacts
+*.egg-info/
+dist/
+build/

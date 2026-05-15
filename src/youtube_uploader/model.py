@@ -58,3 +58,4 @@ class YouTubeClient(object):
 
     def update_video(self, videoId: str, newTitle: Optional[str], newDescription: Optional[str]) -> None:
         raise NotImplementedError()
+

@@ -15,9 +15,19 @@ Allows to automatically backup your videos to your YouTube account.
 
 Python version 3.8.0 or higher is required.
 
-## Install pip requirements
+## Install the package
 
-`pip install -r requirements.txt`
+Install in editable mode (recommended for development):
+
+`pip install -e .`
+
+Or install from a built wheel:
+
+`pip install youtube_uploader-*.whl`
+
+To also install dev/test dependencies:
+
+`pip install -e ".[dev]"`
 
 ## Register an application
 
@@ -47,7 +57,11 @@ Note that you do NOT have to create "credentials file" as it will be automatical
 
 The following command will upload all video files in the specified directory (including sub-directories) to specified playlist.
 
-`.\youtube_uploader.py --dir "LOCAL_DIRECTORY_TO_BACKUP" --playlist "PLAYLIST_TITLE_OR_SUBSTRING"`
+`youtube-uploader --dir "LOCAL_DIRECTORY_TO_BACKUP" --playlist "PLAYLIST_TITLE_OR_SUBSTRING"`
+
+You can also run it directly via Python module:
+
+`python -m youtube_uploader --dir "LOCAL_DIRECTORY_TO_BACKUP" --playlist "PLAYLIST_TITLE_OR_SUBSTRING"`
 
 ## Optional arguments
 

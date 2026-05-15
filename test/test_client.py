@@ -1,13 +1,13 @@
 import unittest
 from unittest.mock import patch
 
-from youtube_client import YouTubeClientImpl, SUPPORTED_VIDEO_EXTENSIONS
+from youtube_uploader.client import YouTubeClientImpl, SUPPORTED_VIDEO_EXTENSIONS
 
 
 def make_client() -> YouTubeClientImpl:
     """Construct a YouTubeClientImpl without touching the filesystem."""
-    with patch('youtube_client.YamlYoutubeCache'), \
-         patch('youtube_client.YouTubeHasher'):
+    with patch('youtube_uploader.client.YamlYoutubeCache'), \
+         patch('youtube_uploader.client.YouTubeHasher'):
         return YouTubeClientImpl()
 
 
@@ -41,8 +41,4 @@ class IsVideoTest(unittest.TestCase):
         for name in ['document.txt', 'document.pdf', 'photo.jpg', 'audio.mp3', 'somefile']:
             with self.subTest(name=name):
                 self.assertFalse(self.client.is_video(name))
-
-
-if __name__ == '__main__':
-    unittest.main()
 

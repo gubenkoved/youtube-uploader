@@ -13,10 +13,16 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client.tools import run_flow
 
-from youtube_cache import YamlYoutubeCache
-from youtube_hasher import YouTubeHasher
-from youtube_uploader_model import YouTubeClient, GetMyPlaylistsResponse, Playlist, PlaylistVideosResponse, Video, \
-    UploadVideoResponse
+from youtube_uploader.cache import YamlYoutubeCache
+from youtube_uploader.hasher import YouTubeHasher
+from youtube_uploader.model import (
+    YouTubeClient,
+    GetMyPlaylistsResponse,
+    Playlist,
+    PlaylistVideosResponse,
+    Video,
+    UploadVideoResponse,
+)
 
 log = logging.getLogger(__name__)
 
@@ -88,7 +94,6 @@ class YouTubeClientImpl(YouTubeClient):
         nextPageToken = None
 
         while True:
-
             request = youtube.playlists().list(
                 part="snippet,contentDetails",
                 maxResults=25,
@@ -102,8 +107,6 @@ class YouTubeClientImpl(YouTubeClient):
                 playlistId = item['id']
                 title = item['snippet']['title']
                 description = item['snippet']['description']
-                # publishedAt = item['snippet']['publishedAt']
-                # itemCount = item['contentDetails']['itemCount']
                 etag = item['etag']
 
                 playlist = Playlist(playlistId, title, description=description, etag=etag)
@@ -151,7 +154,6 @@ class YouTubeClientImpl(YouTubeClient):
         pageToken = None
 
         while True:
-
             request = youtube.playlistItems().list(
                 part="snippet,contentDetails",
                 maxResults=50,
@@ -254,7 +256,6 @@ class YouTubeClientImpl(YouTubeClient):
                 time.sleep(sleep_seconds)
 
     def upload_video(self, path: str, title: str, description: str = '', privacyLevel: str = 'unlisted') -> UploadVideoResponse:
-
         description += self._generate_metadata(path)
 
         body = dict(
@@ -300,3 +301,4 @@ class YouTubeClientImpl(YouTubeClient):
         )
 
         request.execute()
+

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "youtube-uploader"
+version = "1.0.0"
+description = "Automatically backup local videos to your YouTube account"
+readme = "readme.md"
+requires-python = ">=3.8"
+dependencies = [
+    "httplib2",
+    "portalocker",
+    "oauth2client",
+    "coloredlogs",
+    "google-api-python-client",
+    "PyYAML",
+]
+
+[project.scripts]
+youtube-uploader = "youtube_uploader.cli:entrypoint"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pip-tools",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
